@@ -1,0 +1,179 @@
+GLOBAL STYLE SYSTEM
+Apply this design language consistently across all screens.
+Typography
+
+Font family: Helvetica Neue, fallback Inter, fallback system-ui
+Display / headline: weight 300 (light), letter-spacing -0.03em, line-height 1.1
+Subtitles / body: weight 300, letter-spacing 0.01em, line-height 1.65, optionally italic
+UI labels: weight 400, letter-spacing 0.10–0.14em, text-transform uppercase, font-size 10–11px
+Data values / stats: weight 500, tight letter-spacing
+No decorative fonts. No bold for display text. Hierarchy is built entirely through size, weight contrast (300 vs 500), and spacing.
+
+Color
+
+Background: pure white #FFFFFF
+Primary text: #0F0F0F
+Secondary text: rgba(40,40,40,0.55)
+Labels / captions: rgba(80,80,80,0.45)
+Borders / dividers: rgba(0,0,0,0.08) (0.5px lines only, never thick)
+All interface chrome is black or near-black at low opacity. The aura colors are the only saturated color in the entire interface.
+
+Category color palette — lock these exactly:
+CategoryHexDescriptionexperiential_emotional#C4A8FFsoft lavendersensory_environmental#40FFB8vivid mintaction#52E8FFsky cyanrelational_context#FFE040warm yellowtension_complaint#FF7060coral redinfrastructure_amenities#FFB47Apeach
+Spacing and layout
+
+Generous whitespace. Content never touches edges.
+Horizontal margin: minimum 48px on desktop.
+No cards, no shadows, no rounded UI containers unless explicitly described.
+Dividers are 0.5px lines at low opacity, not rules.
+
+
+SCREEN 1 — TITLE SCREEN
+Layout
+Full-viewport screen. White background. Content centered vertically and horizontally in the middle of the screen. Nothing else is visible except the central title block and a minimal scroll indicator at the bottom.
+Title block (centered, vertically and horizontally)
+Stack of text elements, centered alignment, with deliberate vertical spacing between each layer:
+[Top label — uppercase, 10px, weight 400, tracked, color: rgba(80,80,80,0.45)]
+SUPSI — MAIND — Visual Communication Studio 2025
+Professors: [Teacher Name], [Teacher Name]
+
+[Headline — 52px, weight 300, letter-spacing -0.03em, color: #0F0F0F]
+How does
+a park feel?
+
+[Subtitle — 14px, weight 300, italic, color: rgba(40,40,40,0.55), margin-top: 16px]
+A portrait of Lugano built from the words of the people who use it.
+
+[Divider — 0.5px horizontal line, width: 48px, color: rgba(0,0,0,0.15), margin: 28px auto]
+
+[Credits — 10px, weight 400, tracked uppercase, color: rgba(80,80,80,0.40)]
+[Student Name] — [Student Name]
+Scroll indicator (bottom center)
+Fixed to bottom of viewport, centered.
+[vertical line — 1px, height 40px, color: rgba(0,0,0,0.20), animated: fades in and out slowly, 2s loop]
+[label below — 10px, uppercase, tracked, color: rgba(80,80,80,0.35)]
+SCROLL
+Scroll animation — title transition to Screen 2
+Trigger: user begins scrolling down.
+Animation sequence (scroll-linked, not time-based):
+
+As the user scrolls, the entire title block moves upward toward the top of the viewport.
+Simultaneously, the headline (How does a park feel?) scales down from 52px to 18px and its weight feel remains light.
+The subtitle, divider, and credits fade out completely (opacity → 0) as they move up — they disappear before reaching the top.
+The headline continues moving until it rests in the top-left corner of the screen, aligned with the 48px horizontal margin, 32px from the top edge. At this position it becomes the persistent nav label for the rest of the experience.
+As the title clears the center of the screen, the map view (Screen 2) fades in from below — opacity 0 → 1 over the last 30% of the scroll motion.
+The scroll indicator fades out immediately as scrolling begins.
+
+The transition should feel like the title is making room — not disappearing, just stepping aside.
+
+SCREEN 2 — MAP VIEW
+Layout
+Full viewport. White background #FFFFFF. The persistent mini-title from Screen 1 sits top-left.
+Top-left corner label (persists from transition):
+[18px, weight 300, letter-spacing -0.02em]  verde_lugano
+[10px, weight 400, tracked uppercase, color: rgba(80,80,80,0.44), margin-top: 4px]  PERCEPTION MAP — ALL PARKS
+Top-right: minimal north arrow. A thin vertical line (0.8px, 28px tall) with a small filled triangle at the top. Color: rgba(100,100,100,0.28). Label "N" above in 10px.
+Map background layer
+Behind the auras, render a minimal ghost of the city. Two elements only:
+
+Street grid: a sparse set of horizontal and vertical lines, rgba(100,100,100,0.06), 0.5px stroke, spaced ~65px apart. These suggest urban fabric without being readable as real streets.
+Lake Lugano silhouette: a soft filled shape at the bottom third of the screen, color rgba(195,218,245,0.20), with a 0.9px stroke at rgba(100,160,220,0.30). The shape is a gentle curved band suggesting the northern shoreline of the lake. It is purely atmospheric — not geographically accurate, just directional.
+
+This background layer should feel like tracing paper over a map — present but not competing.
+Park aura blobs
+Render exactly 5 aura blobs. Each blob is a perfect circle with a soft mesh gradient inside. The circle has no visible stroke or border. The edge of each circle fades to white by blending the outermost gradient stops to full transparency — the circle dissolves into the white background rather than having a hard edge.
+How to build each aura (mesh gradient technique):
+Each circle contains multiple overlapping radial gradients layered on top of each other using mix-blend-mode: normal and transparency. Each radial gradient corresponds to one category color, positioned at an offset from the center. The result is a smooth, multi-color field where all colors are visible simultaneously and blend into each other like fluid — similar to a holographic foil or an aurora. No color has a hard boundary. The center of the circle shows the dominant color blended with neighbors; edges show secondary colors trailing off toward white.
+Gradient construction per blob:
+
+Place 5–6 radial gradient spots inside the circle.
+Each spot: center positioned at ~35% of the blob radius from the blob center, at evenly distributed angles (every 60° for 6 colors, rotated by a unique offset per park so blobs feel distinct).
+Each radial gradient: inner opacity = 0.80, fades to 0 at radius = 140% of blob radius.
+A base layer under all spots: a large radial gradient at blob center from the dominant color at 0.45 opacity to transparent, covering the full blob area.
+Layer compositing: all spots stacked, normal blend mode.
+
+Park positions (on a 1440×900px desktop canvas, with lake at bottom-left to center-bottom):
+
+Parco Ciani: cx=480, cy=520 (large park, south-center, near lake)
+Parco Tassino: cx=820, cy=290 (north-east)
+Parco San Michele: cx=290, cy=355 (west)
+Parco Panoramico Paradiso: cx=720, cy=600 (south-east, near lake edge)
+Parco Lambertenghi: cx=620, cy=220 (north, smallest)
+
+Park radii (log-scaled from review volume — do not use equal sizes):
+ParkReview volumeRadiusParco Ciani1620171pxParco Tassino722153pxParco San Michele550147pxParco Panoramico Paradiso369138pxParco Lambertenghi65100px
+Category color distribution per blob (percentage = proportion of that color's radial gradient strength and spot radius within the blob):
+Parco Ciani:
+  #C4A8FF experiential  — 46% — dominant, centered slightly top-left
+  #52E8FF action        — 20% — right
+  #40FFB8 sensory       — 18% — bottom
+  #FFB47A infrastructure— 10% — top-right
+  #FFE040 relational    —  5% — bottom-left
+  #FF7060 tension       —  1% — minimal, bottom-right edge
+
+Parco Tassino:
+  #C4A8FF experiential  — 41% — dominant
+  #40FFB8 sensory       — 21% — bottom-right
+  #52E8FF action        — 15% — left
+  #FFB47A infrastructure— 12% — top
+  #FFE040 relational    —  9% — bottom-left
+  #FF7060 tension       —  3% — edge
+
+Parco San Michele:
+  #C4A8FF experiential  — 49% — dominant
+  #40FFB8 sensory       — 21% — right
+  #52E8FF action        — 13% — bottom
+  #FFB47A infrastructure— 13% — top-left
+  #FFE040 relational    —  2% — trace
+  #FF7060 tension       —  2% — trace
+
+Parco Panoramico Paradiso:
+  #C4A8FF experiential  — 43% — dominant
+  #40FFB8 sensory       — 23% — bottom
+  #FFB47A infrastructure— 13% — top-right
+  #52E8FF action        — 11% — left
+  #FFE040 relational    —  9% — bottom-left
+  #FF7060 tension       —  1% — trace
+
+Parco Lambertenghi:
+  #C4A8FF experiential  — 28% — equal dominant
+  #FFE040 relational    — 28% — equal dominant (unusual — this park stands out)
+  #FFB47A infrastructure— 22% — strong
+  #52E8FF action        — 11% — present
+  #40FFB8 sensory       — 11% — present
+  #FF7060 tension       —  1% — trace
+  Note: Lambertenghi has an unusually high relational + infrastructure presence vs other parks.
+  Its blob should feel more yellow-peach than the lavender-dominated others.
+Park name labels:
+Each park has a label below its center.
+
+Font: 11px, weight 400, color rgba(25,25,25,0.46)
+Position: directly below the blob, 12px gap from circle edge
+No leader lines, no boxes
+
+Category legend
+Bottom-left of the screen, 48px from left edge, 28px from bottom.
+Six items in two columns of three. Each item: a filled circle 7px diameter in the category color (at 85% opacity), followed by the category name in 10px, weight 400, uppercase, tracked, color rgba(45,45,45,0.44).
+Scrollytelling annotation
+Display one text annotation block floating in the empty space of the map (upper-left area, away from the blobs), at approximately cx=200, cy=140 on the 1440px canvas.
+Style:
+
+Max width: 280px
+No background, no box, no border
+Top element: a horizontal line 32px wide, 0.5px, color rgba(0,0,0,0.20), margin-bottom 12px
+Text:
+
+  [13px, weight 300, line-height 1.75, color: rgba(30,30,30,0.60), italic]
+  Five green spaces in Lugano.
+  Hundreds of reviews written by
+  the people who actually use them.
+  And a method for distilling all
+  of that language into something
+  you can see.
+This annotation appears with a gentle fade-in (opacity 0 → 1, 600ms ease) after Screen 2 is fully visible.
+Blob animation — idle state
+Once the map is fully visible, each blob has a continuous idle animation:
+
+Pulse: very slow radial scale oscillation — scale 1.0 → 1.04 → 1.0, duration 4–6 seconds per cycle, each blob on a different offset so they don't pulse together. Easing: ease-in-out sinusoidal.
+Gradient drift: the internal color spots shift position very slightly over time — each spot moves ±4% of the blob radius along its angle, 8–12s cycle. This creates the impression that the colors inside are breathing or slowly swirling. Do not rotate the whole blob — only drift the internal spots.
+No hover interaction on this screen yet. Hover will be defined in the park selection screen.
