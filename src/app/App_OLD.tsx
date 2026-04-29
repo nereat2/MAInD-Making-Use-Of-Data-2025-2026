@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useMotionValueEvent } from 'motion/react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react';
 import { WordNetwork } from './components/word-network';
-import { IntroSequence } from './IntroSequence';
 import { PARK_DATA } from './data';
 
 // System-wide categories and colors
@@ -18,7 +17,7 @@ const PARKS = [
   {
     id: 'parco-ciani',
     name: 'Parco Ciani',
-    cx: 918, cy: 572, radius: 156,  // GPS: 46.005342, 8.958047
+    cx: 820, cy: 380, radius: 156,
     distribution: {
       experiential: 0.46,
       action: 0.20,
@@ -31,7 +30,7 @@ const PARKS = [
   {
     id: 'parco-tassino',
     name: 'Parco Tassino',
-    cx: 480, cy: 653, radius: 112,  // GPS: 46.00057, 8.94478
+    cx: 480, cy: 320, radius: 112,
     distribution: {
       experiential: 0.35,
       sensory: 0.30,
@@ -44,7 +43,7 @@ const PARKS = [
   {
     id: 'parco-san-michele',
     name: 'Parco San Michele',
-    cx: 1188, cy: 428, radius: 95,  // GPS: 46.012, 8.965
+    cx: 1100, cy: 180, radius: 95,
     distribution: {
       sensory: 0.50,
       experiential: 0.25,
@@ -57,7 +56,7 @@ const PARKS = [
   {
     id: 'parco-panoramico',
     name: 'Parco Panoramico Paradiso',
-    cx: 432, cy: 760, radius: 138,  // GPS: 45.990, 8.945
+    cx: 720, cy: 600, radius: 138,
     distribution: {
       experiential: 0.43,
       sensory: 0.23,
@@ -70,7 +69,7 @@ const PARKS = [
   {
     id: 'parco-lambertenghi',
     name: 'Parco Lambertenghi',
-    cx: 900, cy: 562, radius: 100,  // GPS: 46.00915, 8.9582
+    cx: 620, cy: 220, radius: 100,
     distribution: {
       relational: 0.28,
       experiential: 0.28,
@@ -80,33 +79,6 @@ const PARKS = [
       tension: 0.01,
     }
   }
-];
-
-function blobPath(cx: number, cy: number, r: number, seed: number): string {
-  const n = 8;
-  const pts: [number, number][] = [];
-  for (let i = 0; i < n; i++) {
-    const angle = (i / n) * Math.PI * 2 - Math.PI / 2;
-    const variation = 0.80 + 0.20 * Math.abs(Math.sin(i * 2.1 + seed));
-    pts.push([cx + Math.cos(angle) * r * variation, cy + Math.sin(angle) * r * variation]);
-  }
-  const mids: [number, number][] = pts.map((p, i) => {
-    const next = pts[(i + 1) % n];
-    return [(p[0] + next[0]) / 2, (p[1] + next[1]) / 2];
-  });
-  let d = `M ${mids[n - 1][0].toFixed(1)} ${mids[n - 1][1].toFixed(1)}`;
-  for (let i = 0; i < n; i++) {
-    d += ` Q ${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)} ${mids[i][0].toFixed(1)} ${mids[i][1].toFixed(1)}`;
-  }
-  return d + ' Z';
-}
-
-const FOLD5_LABEL_OFFSETS = [
-  { dx: 165,  dy:  5,  anchor: 'start'  as const },  // ciani — right
-  { dx: 0,    dy: -120, anchor: 'middle' as const },  // tassino — above
-  { dx: 105,  dy:  0,  anchor: 'start'  as const },   // san-michele — right
-  { dx: -155, dy:  5,  anchor: 'end'    as const },   // panoramico — left
-  { dx: -120, dy: -28, anchor: 'end'    as const },   // lambertenghi — upper-left
 ];
 
 function AuraBlob({ park, index, onClick }: { park: typeof PARKS[0], index: number, onClick: () => void }) {
@@ -199,19 +171,16 @@ export default function App() {
   const selectedPark = PARKS.find(p => p.id === selectedParkId);
   const selectedParkData = selectedParkId ? PARK_DATA[selectedParkId] : null;
 
-  // Calculate total reviews for intro
-  const totalReviews = Object.values(PARK_DATA).reduce((sum, park) => sum + park.review_count, 0);
+  const fadeOut = useTransform(scrollYProgress, [0, 0.4], [1, 0]);
+  const mapOpacity = useTransform(scrollYProgress, [0.35, 0.5], [0, 1]);
+  const persistentLabelOpacity = useTransform(scrollYProgress, [0.4, 0.5], [0, 1]);
+  const scrollIndicatorFade = useTransform(scrollYProgress, [0, 0.1], [1, 0]);
 
-  // Map section starts at 75% scroll (after intro sequence)
-  const mapOpacity = useTransform(scrollYProgress, [0.72, 0.78], [0, 1]);
-  const persistentLabelOpacity = useTransform(scrollYProgress, [0.75, 0.80], [0, 1]);
+  const titleY = useTransform(scrollYProgress, [0, 0.4], [0, -window.innerHeight * 0.5 + 48]);
+  const titleScale = useTransform(scrollYProgress, [0, 0.4], [1, 0.3]);
 
   return (
-    <div className="relative h-[400vh] bg-white selection:bg-black/5">
-      {/* Intro Sequence (0-75% scroll) */}
-      <IntroSequence totalReviews={totalReviews} />
-
-      {/* Map section label */}
+    <div className="relative h-[250vh] bg-white selection:bg-black/5">
       <div className="fixed top-8 left-12 z-50 pointer-events-none">
         <motion.div style={{ opacity: persistentLabelOpacity }} className="flex flex-col">
           <div className="text-[15px] font-light tracking-[0.1em] uppercase text-[#0F0F0F] leading-none">
@@ -220,7 +189,72 @@ export default function App() {
         </motion.div>
       </div>
 
-      {/* Map section (75-100% scroll) */}
+      <div className="h-screen sticky top-0 flex flex-col items-center justify-center overflow-hidden z-20 pointer-events-none">
+        <motion.div 
+          style={{ 
+            y: titleY, 
+            scale: titleScale,
+            top: "50%",
+            left: "50%",
+            translateX: "-50%",
+            translateY: "-50%",
+            position: 'absolute'
+          }}
+          className="flex flex-col items-center"
+        >
+          <h1 className="text-[52px] font-light tracking-[-0.03em] leading-[1.1] text-[#0F0F0F] whitespace-nowrap text-center">
+            How does<br />a park feel?
+          </h1>
+        </motion.div>
+
+        <motion.div 
+          style={{ opacity: fadeOut, y: useTransform(scrollYProgress, [0, 0.4], [140, 100]) }}
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-32 flex flex-col items-center"
+        >
+          <p className="text-[14px] font-light italic text-[#2828288C] leading-[1.65] text-center max-w-md">
+            A portrait of Lugano built from the words of the people who use it.
+          </p>
+          <div className="my-7 w-12 h-[0.5px] bg-[#00000026]" />
+        </motion.div>
+
+        <div className="absolute top-12 left-12">
+          <motion.div style={{ opacity: fadeOut }} className="flex flex-col gap-1">
+            <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505070]">verde_lugano</span>
+            <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505040]">v.02</span>
+          </motion.div>
+        </div>
+
+        <div className="absolute top-12 right-12">
+          <motion.div style={{ opacity: fadeOut }} className="text-right">
+            <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505070]">Visual Communication Studio</span>
+            <div className="mt-1 flex flex-col">
+              <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505040]">SUPSI · MAIND</span>
+            </div>
+          </motion.div>
+        </div>
+
+        <div className="absolute bottom-12 left-12">
+          <motion.div style={{ opacity: fadeOut }} className="flex flex-col gap-1">
+            <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505070]">Studio Professors</span>
+            <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505040]">2025 Edition</span>
+          </motion.div>
+        </div>
+
+        <motion.div 
+          style={{ opacity: scrollIndicatorFade }}
+          className="fixed bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center"
+        >
+          <motion.div 
+            className="w-[1px] h-10 bg-[#00000033]"
+            animate={{ opacity: [0.2, 0.8, 0.2] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+          <span className="text-[10px] font-normal tracking-[0.14em] uppercase text-[#50505059] mt-3">
+            SCROLL
+          </span>
+        </motion.div>
+      </div>
+
       <motion.div 
         style={{ 
           opacity: mapOpacity,
@@ -289,7 +323,6 @@ export default function App() {
         </div>
       </motion.div>
 
-      {/* Park transition animation */}
       <AnimatePresence>
         {isTransitioning && selectedPark && (
           <motion.div 
